@@ -1,0 +1,237 @@
+\documentclass[12pt]{book}
+\usepackage[paperheight=29.7cm,paperwidth=21cm,margin=1in,heightrounded]{geometry}
+\usepackage[english,italian]{babel}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{float}
+
+\usepackage{eqparbox}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\usepackage{exercise,chngcntr}
+\counterwithin{Exercise}{chapter}
+\counterwithin{Answer}{chapter}
+
+\usepackage[
+backend=biber,
+style=numeric
+]{biblatex}
+\usepackage{imakeidx}
+\makeindex
+\addbibresource{references.bib}
+
+\usepackage{scrlayer-scrpage}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows.meta}
+
+\tikzset{box/.style={draw, diamond, thick, text centered, minimum height=0.5cm, minimum width=1cm}}
+\tikzset{line/.style={draw, thick, -latex'}}
+
+\ifoot[]{}
+\cfoot[]{}
+\ofoot[\pagemark]{\pagemark}
+\pagestyle{scrplain}
+
+\makeatletter
+% \patchcmd{<cmd>}{<search>}{<replace>}{<success>}{<failure>}
+% --- Patch \chapter
+\patchcmd{\@makechapterhead}{50\p@}{\chapheadtopskip}{}{}% Space from top of page to CHAPTER X
+\patchcmd{\@makechapterhead}{20\p@}{\chapheadsep}{}{}% Space between CHAPTER X and CHAPTER TITLE
+\patchcmd{\@makechapterhead}{40\p@}{\chapheadbelowskip}{}{}% Space between CHAPTER TITLE and text
+% --- Patch \chapter*
+\patchcmd{\@makeschapterhead}{50\p@}{\chapheadtopskip}{}{}% Space from top of page to CHAPTER TITLE
+\patchcmd{\@makeschapterhead}{40\p@}{\chapheadbelowskip}{}{}% SPace between CHAPTER TITLE and text
+\makeatother
+
+% Set new lengths
+\newlength{\chapheadtopskip}\setlength{\chapheadtopskip}{20pt}
+\newlength{\chapheadsep}\setlength{\chapheadsep}{40pt}
+\newlength{\chapheadbelowskip}\setlength{\chapheadbelowskip}{15pt}
+
+\definecolor{InvarianteCorpo}{RGB}{178,255,102}
+\definecolor{InvarianteTitolo}{RGB}{0,153,153}
+
+\newcommand\eqdef{\stackrel{\mathclap{\normalfont\mbox{def}}}{=}}
+\DeclareGraphicsExtensions{.png,.pdf,.jpg}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+\newsavebox{\gofpicbox}
+\tikzset{
+	gof/.style={font=\footnotesize, >=Stealth},
+	% classi: un solo riquadro, due o tre scomparti (nome / attributi / operazioni)
+	gcls/.style={draw, rectangle split, rectangle split parts=1,
+		rectangle split part align={center}, inner xsep=4pt, inner ysep=3pt, minimum width=2cm},
+	gcls2/.style={gcls, text width=2.2cm, rectangle split parts=2, rectangle split part align={center,left}},
+	gcls3/.style={gcls, text width=2.2cm, rectangle split parts=3, rectangle split part align={center,left,left}},
+	% nota con angolo piegato
+	gnote/.style={rectangle, draw, align=left, font=\scriptsize\ttfamily, inner xsep=6pt, inner ysep=4pt,
+		append after command={\pgfextra{%
+				\fill[white] ([xshift=-1.8mm]\tikzlastnode.north east) -- (\tikzlastnode.north east) -- ([yshift=-1.8mm]\tikzlastnode.north east) -- cycle;
+				\draw ([xshift=-1.8mm]\tikzlastnode.north east) -- ([yshift=-1.8mm]\tikzlastnode.north east);
+				\draw ([xshift=-1.8mm]\tikzlastnode.north east) -- ++(0,-1.8mm) -- ++(1.8mm,0);}}},
+	% archi
+	ginh/.style={-{Triangle[open, length=3mm, width=3mm]}},
+	greal/.style={dashed, -{Triangle[open, length=3mm, width=3mm]}},
+	gass/.style={-{Stealth[length=2.4mm]}},
+	gdep/.style={dashed, -{Stealth[length=2.4mm]}},
+	gagg/.style={{Diamond[open, length=3.4mm, width=1.8mm]}-{Stealth[length=2.4mm]}},
+	gcmp/.style={{Diamond[length=3.4mm, width=1.8mm]}-{Stealth[length=2.4mm]}},
+	gnl/.style={dashed, thin},
+	glbl/.style={font=\scriptsize, inner sep=1.5pt},
+}
+
+% ambiente per i diagrammi: scala il disegno solo se piu' largo di \linewidth
+\newenvironment{gofpic}[1][]{%
+	\def\cn##1{\textbf{##1}}%
+	\def\ca##1{\textbf{\textit{##1}}}%
+	\def\op##1{{\scriptsize\ttfamily ##1}}%
+	\def\ao##1{{\scriptsize\ttfamily\itshape ##1}}%
+	\def\so##1{{\scriptsize\ttfamily\underline{##1}}}%
+	\begin{lrbox}{\gofpicbox}\begin{tikzpicture}[gof,#1]}%
+		{\end{tikzpicture}\end{lrbox}%
+	\ifdim\wd\gofpicbox>\linewidth\resizebox{\linewidth}{!}{\usebox{\gofpicbox}}\else\usebox{\gofpicbox}\fi}
+
+% inheritance: figlio -> padre con "bus" orizzontale
+\newcommand{\ginh}[3][5mm]{\draw[ginh] (#2.north) -- ++(0,#1) -| (#3.south);}
+
+\begin{document}
+	
+	\newcommand{\sep}{\hspace*{.5em}}
+	\renewcommand{\contentsname}{Indice}
+	\renewcommand{\figurename}{Figura}
+	\renewcommand{\ExerciseName}{Esercizio}
+	\renewcommand\AnswerName{Soluzione dell'esercizio}%
+	\renewcommand{\indexname}{Indice analitico}
+	
+	\newdimen{\algindent}
+	\setlength\algindent{1.5em}
+	
+	\counterwithin*{equation}{section}
+	
+	\algnewcommand\LeftComment[2]{%
+		\hspace{#1\algindent}$\triangleright$ \eqparbox{COMMENT}{#2} \hfill %
+	}
+	\algnewcommand\algorithmicforeach{\textbf{for each}}
+	\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+	\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+	
+	\makeatletter
+	\renewcommand{\ALG@name}{Algoritmo}
+	\makeatother
+	
+	\pagenumbering{gobble}
+	
+	\title{AsianWorld}
+	\date{ Novembre 2026 $\to$ Gennaio 2026 }
+	\author{Niccolò Della Rocca\\ Università degli studi di Firenze\\}
+	\maketitle
+	
+	\tableofcontents
+	\newpage
+	\pagenumbering{arabic}
+	
+	\setcounter{page}{1}
+	\setcounter{subsection}{1}
+	\setcounter{section}{1}
+	\setcounter{chapter}{0}
+	\chapter*{Statement}
+	\subsection{Abstract}
+	\emph{AsianWorld} is a service that allows users to find human translated, quality checked, Italian subtitles for Asian movies, while providing a framework for translators to submit their work for a quality review and distribution. 
+	
+	\subsection{On the context}
+	DVDs and Blurays often ship along with the video stream a separate set of streams, known as \emph{tracks}, for audio voiceovers in different languages, and, most relevant for this work, \emph{subtitles}.
+	
+	A subtitle is usually overlayed on the video stream as a bitmap, that is, it's stored and displayed as an image. Mainstream media players, such as \emph{VLC}, support displaying text-based subtitles with various formats, such as \emph{.srt}, and \emph{.ass}/\emph{.ssa}, that extend the former by adding a text styling markdown. 
+	
+	Various tools today allow the user to obtain the textual \emph{srt} subtitles file from their private disk copy. 
+	
+	\subsection{On translations catalog}
+	Three things can be object of translation: \emph{Shorts}, \emph{Movies}, \emph{Dramas}, organized in \emph{Sections}; each Section represents a nation from Asia, within a covered set of nations. Translations from nations not covered by the pre-set sections all sink behind an \emph{Other} Section.
+	
+	Each Section is partitioned in \emph{Subsections}, grouping \emph{Movies}, currently wrapping movies and shorts, and \emph{Dramas}. 
+	
+	\subsection{On translatables}
+	As a mean to convey the end user an impression of quality and care, we require that every subject of translation is accompanied by at least two things: a \emph{Film Fact Sheet}, encompassing at least \emph{original title}, \emph{release year}, \emph{director}, \emph{contry}, \emph{genres}, \emph{cast}, \emph{translator}, \emph{quality-checker}, and a \emph{Film Critique}, that is a \emph{WYSISWYG} forum post.
+	
+	\emph{Dramas} are a special kind of \emph{Translatable}, that are made of a number \emph{Episodes}, each of which can be assigned to a different translator, and \emph{Episodes} are sometimes grouped in \emph{Seasons}, each with a different Facts Sheet, but a common Critique.
+	
+	Translatables are distributed in different \emph{Versions}: releases for the same Translatable might differ in timing and content of subtitles, common reasons being a different master, distributor, resulting in opening sections of different lengths, and even all of that being equal, different framerates may result in subtitles falling out of sync (for example: 25 fps PAL  vs 29.97 fps NTSC).
+	
+	For this reason, a \emph{Translation} must be relative to a set of \emph{Versions}. The common path is that a Translation covers a single Version, but covering a set of Versions is allowed, thoguh uncommon, as that might require multiple quality-check passes (for example, for \emph{Director's Cuts} of the same Translatable).
+	
+	\subsection{On Translations}
+	A \emph{Translator} can \emph{Undertake} a number of \emph{Translations}, each targeting a unique \emph{Translatable}. Translators can have different \emph{Experience Levels}, measured by the number of Translations they participated in. 
+	
+	Each Translation has a $Progress \in [0,1]$; in principle, the \emph{.srt} format provides a progressive number from $1$ to $N$ where $N$ is the number of subtitles in their Translatable. Progress can be estimated by the Translator or computed exactly as $\frac{T}{N}$ where $T$ is the number of translated Subtitles. Other formats do not provide the same explicit count, but they can always be converted to \emph{.srt} so there's no loss of generality.
+	
+	To promote focusing on the quality of the translations, we rule that a \emph{Beginner}, that is, a \emph{Translator} who participated in $0$ to $5$ Translations, can Book\footnote{At this level, I still haven't decided if the act of reserving a translation will be called a Booking or Undertaking. Let's consider both as synonyms.} up to $2$ different Translations at a time, while an \emph{Advanced} Translator, that is, one who participated in over $5$ Translations, can Undertake up to $5$ Translations at a time. Translations whose progress is $1$ still count towards the Simultaneous allowance.
+	
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{|c|c|c|}
+			\hline
+			\textbf{Level Of Experience} & \textbf{Required Range} & \textbf{Allowed Simultaneous  Translations}\\
+			\hline
+			\textit{Beginner} & $[0, 5]$ & $0\rightarrow2$ \\
+			\textit{Advanced} & $(5, \infty)$ & $0\rightarrow5$ \\
+			\hline
+		\end{tabular}
+		\caption{How the level of experience of a Translator maps to the number of Simultaneous translation they can Undertake.}
+		\label{tab:experience-to-simultaneous-translations}
+	\end{table}
+	
+	\subsubsection{On the Translation Process}
+	The Translator SHOULD periodically self-report the progress of the Translation, either via an automated system, or a communication to a Section Moderator. 
+	
+	Section Moderators periodically check with the Translator about their progress. The Translator MUST answer the ping within 30 days, else, the Booking is released and can be handed over to someone else. A Translation can be exempted to this mechanics, because it would prevent Booking for Translatables that are not released yet or for which subtitles won't be distributed soon, which is allowed. 
+	
+	A Translation that's been stale for long enough can be Requested by another Translator, in which case the original owner of the Translation has a time window to either hand it over or maintain it, in which case regular time window apply\footnote{For example: Alice Books a Translatable whose subtitles are not available yet (so, no time-gate constraints). They forget about it when eventually subtitles release for it, then Bob wants to Book its Translation. From now on, Alice's Translation of this Translatable becomes Timegated.}.
+	
+	\subsubsection{Quality check}
+	Once the Translation is completed, before being published, a Quality Check\footnote{Also referred to as Review.} process is required. Only a subset of Users are enabled to perform such check; Section \emph{Moderators} can always take responsibility of Quality-Checking Translations that belong to their own Section, and additionally, a Moderator can delegate a Trusted user the responsibility of Reviewing a Translation. A Moderator can grant an exemption to a User to the Reivew Porcess, allowing them to jump to the next step of the process.
+	
+	A Translator who couldn't find a Reviewer for their Translation, can publish a Review Request to the Section where the Translation belongs, after the Translation Progress reaches $100\%$.
+	
+	\subsubsection{Release Calendar}
+	After a Translation and the corresponding Review are completed, it can be Scheduled for publishing. To allow each Translation to get their share of Visibility, Translations cannot be Published arbitrarily when ready, but they need to be Scheduled on a weekly basis. 
+	
+	The Schedule\footnote{I might refer to this as a Calendar as a Synonym.} is curated by a Moderator, on a global basis: all the Sections share a common Schedule. Each week can have $0$ to $3$ slots, under the following rules:
+	
+	\begin{itemize}
+		\item A week can have empty schedule if not enough Translations are completed at the time.
+		\item A slot can only be occupied by a single \emph{Translation}.
+		\item Consecutive slots must be spaced by at least one day, so to grant each Translator their visibility share.
+	\end{itemize}
+	
+	\subsubsection{Release Process}
+	
+	Within the scheduled day, either the Translator, Reviewer or a Section Moderator MUST post a Critique, crediting who worked on it, teasing the Translatable, and attaching the Translation Output.
+	
+	A Section Moderator must create a Film Facts Sheet for the Translatable, and attach the Translation Output there as well. 
+	
+	\subsubsection{Exceptions}
+	\begin{itemize}
+		\item When the Translatable is a Short, the Quality-Check process can optionally be skipped.
+		\item Users of the service MUST be able to report poor translation quality of a Translation to Section Moderators. The Translator can update their work, or, if nobody can take charge\footnote{Sometimes it's physically impossible: some Translatable can become unavaiable because it runs out of print.}, the Translation can be temporally or permanently retired.
+		\item If a Translatable gets a print with Italian Voiceover, the Translation is immediately withdrawn irregardless of their current state. 
+		\item A Translator can request to retire some or all of their Translations.
+		\item A Translator can Book a Translatable that was not released yet. In this case, this Booking counts towards the Simultaneous Translations allowance for this Translator. This is true for Translatables that already released but no subtitle stream became available yet\footnote{Typically a movie releases its DVD and Bluray print 4 months after release; in this window, the movie is released but not translatable.}.
+		\item A Translatable that's already booked cannot be Booked again, as well as one that's already been translated.
+		\item A User of AsianWorld can report a Section Moderator that a Translatable has already been translated on a third party service, in which case the Translator can abandon the Translation.
+	\end{itemize}
+
+	\subsubsection{On Translations Requests}
+	Users of AsianWorld can create a Translation Request. A User can open any number of Requests at a Time and a Translator can consult a list of open Translation Requests. If their allowance has enough free slots for their experience level, a Translator can Accept a Translation Request, and the owner of such Request receives a notification. 
+	
+	\subsection{Forum}
+	
+	\subsubsection{Reviews}
+	\printbibliography
+	\printindex
+\end{document}
